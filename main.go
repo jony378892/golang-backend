@@ -35,6 +35,33 @@ func getProducts(w http.ResponseWriter, r *http.Request) {
 	encoder.Encode(productList)
 }
 
+func createProduct(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Content-type", "application/json")
+
+	if r.Method != "POST" {
+		http.Error(w, "Pls use post request to create product", 400)
+		return
+	}
+
+	var newProduct Product
+	newProduct.Id = len(productList)
+
+	decoder := json.NewDecoder(r.Body)
+	err := decoder.Decode(&newProduct)
+
+	if err != nil {
+		http.Error(w, "Send a valid json data", 400)
+		return
+	}
+
+	productList = append(productList, newProduct)
+
+	encoder := json.NewEncoder(w)
+	encoder.Encode(&newProduct)
+
+}
+
 func main() {
 	mux := http.NewServeMux()
 
@@ -43,6 +70,8 @@ func main() {
 	mux.HandleFunc("/about", aboutHandler)
 
 	mux.HandleFunc("/products", getProducts)
+
+	mux.HandleFunc("/create-product", createProduct)
 
 	fmt.Println("Server running on 3000")
 
